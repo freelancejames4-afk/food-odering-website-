@@ -1,0 +1,56 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Plus Jakarta Sans", sans-serif;
+
+  --color-primary: #6366f1; /* indigo-500 */
+  --color-primary-container: #4f46e5; /* indigo-600 */
+  --color-secondary: #10b981; /* emerald-500 */
+  --color-background: #09090b; /* zinc-950 */
+  --color-surface-container-lowest: #18181b; /* zinc-900 */
+  --color-surface-container-low: #202024;
+  --color-surface-container: #27272a; /* zinc-800 */
+  --color-surface-container-high: #3f3f46; /* zinc-700 */
+  --color-surface-container-highest: #52525b; /* zinc-600 */
+  --color-on-background: #f4f4f5; /* zinc-100 */
+  --color-on-surface: #f4f4f5; /* zinc-100 */
+  --color-on-surface-variant: #a1a1aa; /* zinc-400 */
+  --color-outline: #27272a; /* zinc-800 */
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-on-background);
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Custom scrollbars for the food customizer and active tracking panels */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-surface-container-highest);
+  border-radius: 10px;
+}
+
+/* Keyframe animations */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.65);
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+.pulse-ring {
+  animation: pulse-ring 2s cubic-bezier(0.215, 0.610, 0.355, 1) infinite;
+}

@@ -1,0 +1,6 @@
+{
+  "name": "FreshDelivery",
+  "description": "Premium fresh-food delivery and checkout experience featuring interactive cart customizers, real-time-simulated active tracking maps, address managers, and promo tools.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
