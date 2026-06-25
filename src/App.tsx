@@ -17,7 +17,8 @@ import {
   X,
   LogOut,
   LogIn,
-  UserCheck
+  UserCheck,
+  Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { auth, onAuthStateChanged, signOut, FirebaseUser } from './firebase';
@@ -171,6 +172,54 @@ export default function App() {
 
   // Quick total items count
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+
+  // Authentication gate loading state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-6 text-center select-none">
+        <div className="w-16 h-16 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl flex items-center justify-center mb-4 animate-pulse">
+          <span className="material-symbols-outlined text-3xl text-indigo-400">dining</span>
+        </div>
+        <h1 className="font-display text-xl font-extrabold text-zinc-100 tracking-tight">FreshDelivery</h1>
+        <p className="text-zinc-500 text-xs mt-1.5 flex items-center gap-2 justify-center">
+          <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-400" />
+          <span>Securing your delivery session...</span>
+        </p>
+      </div>
+    );
+  }
+
+  // Authentication gate mandatory login state
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col justify-center items-center p-4 sm:p-6 select-none relative overflow-hidden">
+        {/* Ambient blurred decorative light spots */}
+        <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-80 h-80 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="w-full max-w-md text-center mb-6 z-10">
+          <div className="w-14 h-14 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <span className="material-symbols-outlined text-3xl text-indigo-400">dining</span>
+          </div>
+          <h1 className="font-display text-2xl sm:text-3xl font-black text-zinc-100 tracking-tight flex items-center justify-center gap-2">
+            <span>FreshDelivery</span>
+          </h1>
+          <p className="text-zinc-400 text-sm mt-2 max-w-xs mx-auto">
+            Order premium, organic and customized healthy meals delivered right to your door.
+          </p>
+        </div>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="w-full max-w-md z-10"
+        >
+          <AuthScreen />
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-on-background selection:bg-primary-container selection:text-white flex flex-col antialiased">
