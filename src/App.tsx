@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CartItem, DeliveryAddress, PaymentMethod, SimulatedOrder } from './types';
 import { INITIAL_ADDRESSES, INITIAL_PAYMENT_METHODS } from './data';
 import MenuSection from './components/MenuSection';
@@ -14,12 +14,29 @@ import {
   FileText,
   Heart,
   User,
-  X
+  X,
+  LogOut,
+  LogIn,
+  UserCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { auth, onAuthStateChanged, signOut, FirebaseUser } from './firebase';
+import AuthScreen from './components/AuthScreen';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<'checkout' | 'menu' | 'tracking'>('checkout');
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setAuthLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   // Pre-seed the cart to perfectly match the design mockup's initial values
   const [cartItems, setCartItems] = useState<CartItem[]>([
@@ -181,14 +198,88 @@ export default function App() {
             <span>{getViewTitle()}</span>
           </h1>
 
-          {/* Help Action button */}
-          <button
-            onClick={() => setShowHelpModal(true)}
-            className="text-primary hover:bg-white/5 transition-colors p-2.5 rounded-full active:scale-95 cursor-pointer flex items-center justify-center"
-            title="App Information"
-          >
-            <HelpCircle className="w-5 h-5 stroke-[2.5px]" />
-          </button>
+          {/* Action buttons (Profile & Help) */}
+          <div className="flex items-center gap-1.5 relative" id="header-actions">
+            {/* User Profile / Auth Action */}
+            {authLoading ? (
+              <div className="w-9 h-9 flex items-center justify-center">
+                <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : user ? (
+              <div className="relative">
+                <button
+                  onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                  className="w-9 h-9 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-display text-xs font-black hover:bg-indigo-500/20 active:scale-95 transition-all overflow-hidden flex items-center justify-center cursor-pointer relative"
+                  title="View Profile"
+                  id="user-profile-btn"
+                >
+                  {user.photoURL ? (
+                    <img referrerPolicy="no-referrer" src={user.photoURL} alt={user.displayName || 'User'} className="w-full h-full object-cover" />
+                  ) : (
+                    <span>{(user.displayName || user.email || 'U').substring(0, 1).toUpperCase()}</span>
+                  )}
+                </button>
+
+                {/* Profile Dropdown */}
+                <AnimatePresence>
+                  {showProfileDropdown && (
+                    <>
+                      {/* Click outside backdrop */}
+                      <div className="fixed inset-0 z-30 animate-none" onClick={() => setShowProfileDropdown(false)} />
+                      <motion.div
+                        initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute right-0 mt-2 w-56 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-xl py-3 px-4 z-40 space-y-2.5"
+                        id="profile-dropdown-menu"
+                      >
+                        <div className="border-b border-zinc-800 pb-2.5">
+                          <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest">Active Session</p>
+                          <p className="text-zinc-100 text-xs font-bold truncate mt-1">
+                            {user.displayName || 'Fresh Customer'}
+                          </p>
+                          <p className="text-zinc-400 text-[10px] truncate">
+                            {user.email}
+                          </p>
+                        </div>
+                        <button
+                          onClick={async () => {
+                            setShowProfileDropdown(false);
+                            await signOut(auth);
+                          }}
+                          className="w-full flex items-center gap-2 text-red-400 hover:bg-red-500/10 p-2 rounded-xl text-xs font-bold transition-all text-left cursor-pointer"
+                          id="signout-dropdown-btn"
+                        >
+                          <LogOut className="w-3.5 h-3.5" />
+                          <span>Sign Out</span>
+                        </button>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="text-primary hover:bg-white/5 transition-colors p-2.5 rounded-full active:scale-95 cursor-pointer flex items-center justify-center"
+                title="Sign In / Register"
+                id="header-login-btn"
+              >
+                <User className="w-5 h-5 stroke-[2.5px]" />
+              </button>
+            )}
+
+            {/* Help Action button */}
+            <button
+              onClick={() => setShowHelpModal(true)}
+              className="text-primary hover:bg-white/5 transition-colors p-2.5 rounded-full active:scale-95 cursor-pointer flex items-center justify-center"
+              title="App Information"
+              id="header-help-btn"
+            >
+              <HelpCircle className="w-5 h-5 stroke-[2.5px]" />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -234,6 +325,8 @@ export default function App() {
                 onSelectPayment={setSelectedPayment}
                 onAddPayment={handleAddPayment}
                 onPlaceOrder={handlePlaceOrder}
+                user={user}
+                onTriggerAuth={() => setShowAuthModal(true)}
               />
             )}
 
@@ -363,6 +456,29 @@ export default function App() {
               >
                 Let's Eat Fresh!
               </button>
+            </motion.div>
+          </div>
+        )}
+
+        {showAuthModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowAuthModal(false)}
+              className="absolute inset-0 bg-black/70 backdrop-blur-xs"
+            />
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="relative z-10 w-full max-w-md"
+            >
+              <AuthScreen
+                onClose={() => setShowAuthModal(false)}
+                onSuccess={() => setShowAuthModal(false)}
+              />
             </motion.div>
           </div>
         )}

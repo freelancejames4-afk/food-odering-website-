@@ -13,7 +13,8 @@ import {
   Tag,
   AlertCircle,
   Clock,
-  Info
+  Info,
+  LogIn
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -30,6 +31,8 @@ interface CheckoutReviewProps {
   onSelectPayment: (payment: PaymentMethod) => void;
   onAddPayment: (payment: PaymentMethod) => void;
   onPlaceOrder: (promoCode: string, discount: number) => void;
+  user?: any;
+  onTriggerAuth?: () => void;
 }
 
 export default function CheckoutReview({
@@ -45,6 +48,8 @@ export default function CheckoutReview({
   onSelectPayment,
   onAddPayment,
   onPlaceOrder,
+  user,
+  onTriggerAuth,
 }: CheckoutReviewProps) {
   // Address selection drawer
   const [showAddressDrawer, setShowAddressDrawer] = useState(false);
@@ -424,14 +429,39 @@ export default function CheckoutReview({
           </div>
         </div>
 
-        <button
-          onClick={() => onPlaceOrder(activePromo || '', discountAmount)}
-          disabled={cartItems.length === 0}
-          className="w-full bg-primary text-white py-4 rounded-full font-display text-base font-bold shadow-md hover:bg-opacity-95 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          <span>Place Order</span>
-          <PlusCircle className="w-5 h-5 fill-white/10" />
-        </button>
+        {user ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-1.5 bg-indigo-500/5 border border-indigo-500/10 rounded-xl px-3.5 py-2 text-xs text-indigo-400">
+              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+              <span>Signed in as <strong className="text-zinc-200">{user.displayName || user.email}</strong></span>
+            </div>
+            <button
+              onClick={() => onPlaceOrder(activePromo || '', discountAmount)}
+              disabled={cartItems.length === 0}
+              className="w-full bg-primary text-white py-4 rounded-full font-display text-base font-bold shadow-md hover:bg-opacity-95 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              id="checkout-place-order-btn"
+            >
+              <span>Place Order</span>
+              <PlusCircle className="w-5 h-5 fill-white/10" />
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="flex items-start gap-2 bg-indigo-500/5 border border-indigo-500/15 rounded-xl p-3 text-xs text-zinc-400">
+              <AlertCircle className="w-4.5 h-4.5 text-indigo-400 shrink-0 mt-0.5" />
+              <p>You must be signed in to place and track your order. It only takes a minute!</p>
+            </div>
+            <button
+              onClick={onTriggerAuth}
+              disabled={cartItems.length === 0}
+              className="w-full bg-indigo-600 text-white py-4 rounded-full font-display text-base font-bold shadow-md hover:bg-indigo-500 hover:shadow-indigo-500/10 active:scale-[0.98] transition-all flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-40"
+              id="checkout-signin-order-btn"
+            >
+              <LogIn className="w-4.5 h-4.5" />
+              <span>Sign In to Place Order</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Address Selection Drawer Modal */}
